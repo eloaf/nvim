@@ -11,5 +11,5 @@ chmod u+x nvim
 sudo mv nvim /usr/local/bin/nvim
 
 # Optional?
-rm -r ~/.config/nvim
+rm -rf ~/.config/nvim
 git clone https://github.com/eloaf/nvim.git ~/.config/nvim
