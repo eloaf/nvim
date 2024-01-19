@@ -1,7 +1,16 @@
+set -e
+
 sudo apt -y update
-sudo apt install -y npm nodejs ack curl htop fzf fuse
-sudo npm install -g pyright
+sudo apt install -y ack curl htop fzf fuse
 pip install black isort
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+
+# Load nvm
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+nvm install node
+npm install -g pyright
 
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 chmod u+x nvim.appimage
