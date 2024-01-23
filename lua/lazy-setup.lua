@@ -50,18 +50,23 @@ lspconfig.lua_ls.setup({
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
 lspconfig.pyright.setup({})
 
-
-
 -- TODO: Other LSPs? Yaml? Json?
 
 -- https://www.reddit.com/r/neovim/comments/u3c3kw/how_do_you_sorting_cmp_completions_items/
+-- NOTE: 7. Insert mode completion				*ins-completion*, :help ins-completion or help completion
 local cmp = require('cmp')
 local compare = cmp.config.compare
 cmp.setup({
+    snippet = {
+        expand = function(args)
+            require('luasnip').lsp_expand(args.body)
+        end,
+    },
     sources = {
-        { name = "copilot",  group_index = 2 },
+        -- { name = "copilot",  group_index = 2 },
         { name = "nvim_lsp", group_index = 2 },
-        { name = "luasnip",  group_index = 2 },
+        { name = "buffer",   group_index = 2 },
+        -- { name = "luasnip",  group_index = 2 },
         { name = "path",     group_index = 2 },
     },
     mapping = cmp.mapping.preset.insert({
@@ -69,16 +74,18 @@ cmp.setup({
         --     behavior = cmp.ConfirmBehavior.Replace,
         --     select = false,
         -- }),
+        -- ['<C-n>'] = cmp.complete(),
         ['<C-m>'] = cmp.mapping.select_prev_item(),
-        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-        ['<C-f>'] = cmp.mapping.scroll_docs(4),
+        ['<C-k>'] = cmp.mapping.scroll_docs(-4),
+        ['<C-j>'] = cmp.mapping.scroll_docs(4),
         ['<C-Space>'] = cmp.mapping.complete(),
         ['<C-e>'] = cmp.mapping.abort(),
-        ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+        -- ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+        ['<Tab>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     }),
     window = {
-        -- completion = cmp.config.window.bordered(),
-        -- documentation = cmp.config.window.bordered(),
+        completion = cmp.config.window.bordered(),
+        documentation = cmp.config.window.bordered(),
     },
     sorting = {
         priority_weight = 1,
@@ -97,7 +104,7 @@ cmp.setup({
     formatting = {
         format = require("lspkind").cmp_format({
             mode = 'symbol', -- show only symbol annotations
-            maxwidth = 50,   -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+            maxwidth = 30,   -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
             -- can also be a function to dynamically calculate max width such as
             -- maxwidth = function() return math.floor(0.45 * vim.o.columns) end,
             ellipsis_char = '...',    -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
