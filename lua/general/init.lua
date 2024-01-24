@@ -51,3 +51,6 @@ end
 
 vim.api.nvim_set_keymap('v', '<leader>dl', '<Cmd>lua Delete_blank_lines_in_visual_selection()<CR>',
     { noremap = true, silent = true })
+
+-- vim.api.nvim_set_keymap('n', '<C-j>', '<C-L><zz>', { noremap = true })
+-- vim.api.nvim_set_keymap('n', '<C-k>', '<C-H><zz>', { noremap = true })

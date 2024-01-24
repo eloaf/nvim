@@ -47,13 +47,56 @@ lspconfig.lua_ls.setup({
     }
 })
 
+-- Set up lspconfig.
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+-- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+lspconfig['pyright'].setup {
+    capabilities = capabilities
+}
+lspconfig['lua_ls'].setup {
+    capabilities = capabilities
+}
+
+
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
 lspconfig.pyright.setup({})
 
 -- TODO: Other LSPs? Yaml? Json?
 
+
 -- https://www.reddit.com/r/neovim/comments/u3c3kw/how_do_you_sorting_cmp_completions_items/
 -- NOTE: 7. Insert mode completion				*ins-completion*, :help ins-completion or help completion
+
+-- local kind_icons = {
+--     Text = "",
+--     Method = "󰆧",
+--     Function = "󰊕",
+--     Constructor = "",
+--     Field = "󰇽",
+--     Variable = "󰂡",
+--     Class = "󰠱",
+--     Interface = "",
+--     Module = "",
+--     Property = "󰜢",
+--     Unit = "",
+--     Value = "󰎠",
+--     Enum = "",
+--     Keyword = "󰌋",
+--     Snippet = "",
+--     Color = "󰏘",
+--     File = "󰈙",
+--     Reference = "",
+--     Folder = "󰉋",
+--     EnumMember = "",
+--     Constant = "󰏿",
+--     Struct = "",
+--     Event = "",
+--     Operator = "󰆕",
+--     TypeParameter = "󰅲",
+-- }
+
+
+-- TODO Seems like lua lsp is not used??
 local cmp = require('cmp')
 local compare = cmp.config.compare
 cmp.setup({
@@ -64,10 +107,12 @@ cmp.setup({
     },
     sources = {
         -- { name = "copilot",  group_index = 2 },
-        { name = "nvim_lsp", group_index = 2 },
-        { name = "buffer",   group_index = 2 },
+        { name = "nvim_lsp",                group_index = 1 },
+        { name = "buffer",                  group_index = 1 },
         -- { name = "luasnip",  group_index = 2 },
-        { name = "path",     group_index = 2 },
+        -- { name = "path",     group_index = 2 },
+        { name = 'async_path',              group_index = 1 },
+        { name = 'nvim_lsp_signature_help', group_index = 1 },
     },
     mapping = cmp.mapping.preset.insert({
         -- ["<CR>"] = cmp.mapping.confirm({
@@ -84,33 +129,52 @@ cmp.setup({
         ['<Tab>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     }),
     window = {
+        max_height = 40,
         completion = cmp.config.window.bordered(),
         documentation = cmp.config.window.bordered(),
+    },
+    view = {
+        -- entries = { name = 'custom', selection_order = 'bottom_up' }
+        entries = { name = 'custom', selection_order = 'near_cursor' }
     },
     sorting = {
         priority_weight = 1,
         comparators = {
             compare.offset,
-            compare.exact,
+            -- compare.exact,
+            compare.locality,
             compare.score,
             compare.recently_used,
-            compare.locality,
-            compare.kind,
+            -- compare.kind, -- can I configure this for python somehow?
             compare.sort_text,
-            compare.length,
-            compare.order,
+            -- compare.length,
+            -- compare.order,
         }
     },
     formatting = {
+
+        -- format = function(entry, vim_item)
+        --     -- Kind icons
+        --     vim_item.kind = string.format('%s %s', kind_icons[vim_item.kind], vim_item.kind) -- This concatonates the icons with the name of the item kind
+        --     -- Source
+        --     vim_item.menu = ({
+        --         buffer = "[Buffer]",
+        --         nvim_lsp = "[LSP]",
+        --         luasnip = "[LuaSnip]",
+        --         nvim_lua = "[Lua]",
+        --         latex_symbols = "[LaTeX]",
+        --     })[entry.source.name]
+        --     return vim_item
+        -- end
+
         format = require("lspkind").cmp_format({
-            mode = 'symbol', -- show only symbol annotations
-            maxwidth = 30,   -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+            mode = 'text_symbol', -- show only symbol annotations
+            maxwidth = 30,        -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
             -- can also be a function to dynamically calculate max width such as
             -- maxwidth = function() return math.floor(0.45 * vim.o.columns) end,
             ellipsis_char = '...',    -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
             show_labelDetails = true, -- show labelDetails in menu. Disabled by default
             symbol_map = { Copilot = "" },
-
             -- The function below will be called before any actual modifications from lspkind
             -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
             -- before = function (entry, vim_item)
@@ -119,6 +183,29 @@ cmp.setup({
             -- end
         })
     }
+})
+
+-- `/` cmdline setup.
+cmp.setup.cmdline('/', {
+    mapping = cmp.mapping.preset.cmdline(),
+    sources = {
+        { name = 'buffer' }
+    }
+})
+
+-- `:` cmdline setup.
+cmp.setup.cmdline(':', {
+    mapping = cmp.mapping.preset.cmdline(),
+    sources = cmp.config.sources({
+        { name = 'path' }
+    }, {
+        {
+            name = 'cmdline',
+            option = {
+                ignore_cmds = { 'Man', '!' }
+            }
+        }
+    })
 })
 
 vim.api.nvim_set_hl(0, "CmpItemKindCopilot", { fg = "#6CC644" })
