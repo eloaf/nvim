@@ -88,15 +88,17 @@ return {
 
         -- https://github.com/nvim-telescope/telescope.nvim/blob/master/README.md#pickers
         -- File Pickers
-        vim.keymap.set("n", "<leader>ff", builtin.find_files, {})
-        vim.keymap.set("n", "<leader>fs", builtin.grep_string)
-        vim.keymap.set("n", "<leader>fg", builtin.live_grep)
-        vim.keymap.set("n", "<leader>fgg", builtin.git_files)  -- rename to gf ? and comment to cc?
+        vim.keymap.set("n", "<leader>ff", "Telescope find_files<CR>", {})
+        vim.keymap.set("n", "<leader>fs", "Telescope grep_string<CR>")
+        -- vim.keymap.set("n", "<leader>fg", builtin.live_grep)
+        vim.keymap.set("n", "<leader>fg", ":Telescope live_grep<CR>")
+        vim.keymap.set("n", "<leader>fr", ":Telescope git_files<CR>") -- fr for "find repo"
         -- Vim pickers
-        vim.keymap.set("n", "<leader>fb", builtin.buffers)
-        vim.keymap.set("n", "<leader>fo", builtin.oldfiles)
-        vim.keymap.set("n", "<leader>fc", builtin.commands)
-        vim.keymap.set("n", "<leader>fh", builtin.help_tags)
+        vim.keymap.set("n", "<leader>fb", ":Telescope buffers<CR>")
+        vim.keymap.set("n", "<leader>fo", ":Telescope oldfiles<CR>")
+        vim.keymap.set("n", "<leader>fc", ":Telescope commands<CR>")
+        vim.keymap.set("n", "<leader>fh", ":Telescope help_tags<CR>")
+        vim.keymap.set("n", "<leader>fk", ":Telescope keymaps<CR>")
 
         -- vim.keymap.set("n", "<leader>fs", function()
         --     builtin.grep_string( { search = vim.fn.input("Grep > ") } );
