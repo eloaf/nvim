@@ -88,9 +88,8 @@ return {
 
         -- https://github.com/nvim-telescope/telescope.nvim/blob/master/README.md#pickers
         -- File Pickers
-        vim.keymap.set("n", "<leader>ff", "Telescope find_files<CR>", {})
-        vim.keymap.set("n", "<leader>fs", "Telescope grep_string<CR>")
-        -- vim.keymap.set("n", "<leader>fg", builtin.live_grep)
+        vim.keymap.set("n", "<leader>ff", ":Telescope find_files<CR>", {})
+        vim.keymap.set("n", "<leader>fs", ":Telescope grep_string<CR>")
         vim.keymap.set("n", "<leader>fg", ":Telescope live_grep<CR>")
         vim.keymap.set("n", "<leader>fr", ":Telescope git_files<CR>") -- fr for "find repo"
         -- Vim pickers
