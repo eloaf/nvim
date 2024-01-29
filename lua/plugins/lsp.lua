@@ -41,8 +41,20 @@ return {
             -- ]d   : Move to the next diagnostic. See :help vim.diagnostic.goto_next().
             -- -- here you can setup the language servers
 
+            -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
+            require("neodev").setup({
+                -- add any options here, or leave empty to use the default settings
+            })
+
+            -- then setup your lsp server as usual
             local lspconfig = require('lspconfig')
 
+            -- Set up lspconfig.
+            -- TODO: Other LSPs? Yaml? Json?
+            local capabilities = require('cmp_nvim_lsp').default_capabilities()
+            lspconfig['pyright'].setup({
+                capabilities = capabilities
+            })
             -- example to setup lua_ls and enable call snippets
             lspconfig.lua_ls.setup({
                 settings = {
@@ -54,18 +66,20 @@ return {
                 }
             })
 
-            -- Set up lspconfig.
-            -- TODO: Other LSPs? Yaml? Json?
-            local capabilities = require('cmp_nvim_lsp').default_capabilities()
-            lspconfig['pyright'].setup {
-                capabilities = capabilities
-            }
-            lspconfig['lua_ls'].setup {
-                capabilities = capabilities
-            }
+            -- Start the lsp only when we open sh?
+            vim.api.nvim_create_autocmd('FileType', {
+                pattern = 'sh',
+                callback = function()
+                    vim.lsp.start({
+                        name = 'bash-language-server',
+                        cmd = { 'bash-language-server', 'start' },
+                    })
+                end,
+            })
 
             -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
-            lspconfig.pyright.setup({})
+            -- lspconfig.pyright.setup({})
+            -- example to setup lua_ls and enable call snippets
         end
     },
 }

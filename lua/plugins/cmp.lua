@@ -84,22 +84,33 @@ return {
                     documentation = cmp.config.window.bordered(),
                 },
                 view = {
+                    -- https://github.com/hrsh7th/nvim-cmp/issues/910
                     -- entries = { name = 'custom', selection_order = 'bottom_up' }
                     entries = { name = 'custom', selection_order = 'near_cursor' }
                 },
                 sorting = {
                     priority_weight = 1,
+                    -- comparators = {
+                    --     -- compare.offset,
+                    --     compare.exact,
+                    --     compare.locality,
+                    --     compare.score,
+                    --     compare.recently_used,
+                    --     compare.kind, -- can I configure this for python somehow?
+                    --     compare.sort_text,
+                    --     compare.length,
+                    --     -- compare.order,
+                    -- },
                     comparators = {
-                        compare.offset,
-                        compare.exact,
-                        compare.locality,
-                        compare.score,
-                        compare.recently_used,
-                        compare.kind, -- can I configure this for python somehow?
-                        compare.sort_text,
-                        compare.length,
-                        -- compare.order,
-                    }
+                        cmp.config.compare.offset,
+                        cmp.config.compare.exact,
+                        cmp.config.compare.score,
+                        -- cmp.config.compare.kind, -- Sorts by the type (function, variable, etc.)
+                        cmp.config.compare.sort_text,
+                        cmp.config.compare.length,
+                        cmp.config.compare.order,
+                    },
+
                 },
                 formatting = {
 
