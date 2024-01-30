@@ -28,3 +28,17 @@ vim.api.nvim_create_autocmd("BufReadPost", {
         end
     end,
 })
+
+function RunPythonCurrentFile()
+    local current_file = vim.fn.expand('%')
+    vim.cmd('split | terminal python ' .. current_file)
+end
+
+vim.api.nvim_create_user_command('RunPythonFile', RunPythonCurrentFile, {})
+
+vim.api.nvim_set_keymap('n', '<leader>rp', ':RunPythonFile<CR>', { noremap = true, silent = true })
+
+
+--  IDEA: Keep a file, that contains mappings of {file: run configuration}, which is loaded in memory on startup,
+--  then there's a menu to edit this configuration (written back to file as well) and a shortcut (like leader-r)
+--  that opens a terminal and runs the file with the configuration from the file

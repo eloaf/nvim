@@ -9,6 +9,7 @@ Ideas:
 - autopairs seems to not overwrite the closing bracket now?
 - Ignore filetypes in Telescope live grep: https://www.reddit.com/r/neovim/comments/11ukbgn/how_to_includeexclude_files_in_telescope_live_grep/
 - gx goes to link! but needs http/https. https://www.reddit.com/r/neovim/comments/xv0f4q/how_do_i_make_these_links_open_in_neovim/
+- leader + t just go to nvim tree if its already there (toggle focus) instead of ctrl-w all the time
 
 
 Terminal bug:
