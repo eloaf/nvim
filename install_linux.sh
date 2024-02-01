@@ -1,7 +1,7 @@
 set -e
 
 sudo apt -y update
-sudo apt install -y ack curl htop fzf fuse
+sudo apt install -y ack curl htop fzf fuse ripgrep
 pip install black isort
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
