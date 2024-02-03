@@ -1,5 +1,5 @@
 brew install nvim
-brew install node npm pyright lua-language-server ripgrep fd-find
+brew install node npm pyright lua-language-server ripgrep fd-find universal-ctags
 
 # NerdFont
 # brew tap homebrew/cask-fonts

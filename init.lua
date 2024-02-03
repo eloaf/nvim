@@ -42,3 +42,6 @@ vim.api.nvim_set_keymap('n', '<leader>rp', ':RunPythonFile<CR>', { noremap = tru
 --  IDEA: Keep a file, that contains mappings of {file: run configuration}, which is loaded in memory on startup,
 --  then there's a menu to edit this configuration (written back to file as well) and a shortcut (like leader-r)
 --  that opens a terminal and runs the file with the configuration from the file
+
+
+vim.api.nvim_set_keymap('t', '<ESC>', [[<C-\><C-n>]], { noremap = true })

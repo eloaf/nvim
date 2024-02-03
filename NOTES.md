@@ -14,3 +14,11 @@ Ideas:
 
 Terminal bug:
 - For startup or shell-related problems: try env -i TERM=ansi-256color "$(which nvim)".
+
+
+https://www.reddit.com/r/neovim/comments/1abd2cq/what_are_your_favorite_tricks_using_neovim/
+https://www.reddit.com/r/neovim/comments/1af1r03/what_was_that_one_keybinding_that_you_somehow/
+
+https://github.com/rest-nvim/rest.nvim
+
+
