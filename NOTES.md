@@ -21,4 +21,5 @@ https://www.reddit.com/r/neovim/comments/1af1r03/what_was_that_one_keybinding_th
 
 https://github.com/rest-nvim/rest.nvim
 
-
+https://www.youtube.com/shorts/Ofxlqz88pPA
+Amazing, you can you use the quickfix list to apply multiple commands at specific locations

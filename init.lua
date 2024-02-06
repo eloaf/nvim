@@ -34,14 +34,32 @@ function RunPythonCurrentFile()
     vim.cmd('split | terminal python ' .. current_file)
 end
 
-vim.api.nvim_create_user_command('RunPythonFile', RunPythonCurrentFile, {})
+function RunPytestCurrentFile()
+    local current_file = vim.fn.expand('%')
+    -- % pytest --cov=df_api --cov-report term-missing libs/df-api/tests
+    vim.cmd('split | terminal pytest -s --cov=df_api --cov-report term-missing ' .. current_file)
+end
 
+vim.api.nvim_create_user_command('RunPythonFile', RunPythonCurrentFile, {})
 vim.api.nvim_set_keymap('n', '<leader>rp', ':RunPythonFile<CR>', { noremap = true, silent = true })
+
+
+vim.api.nvim_create_user_command('RunPytestFile', RunPytestCurrentFile, {})
+vim.api.nvim_set_keymap('n', '<leader>rt', ':RunPytestFile<CR>', { noremap = true, silent = true })
 
 
 --  IDEA: Keep a file, that contains mappings of {file: run configuration}, which is loaded in memory on startup,
 --  then there's a menu to edit this configuration (written back to file as well) and a shortcut (like leader-r)
 --  that opens a terminal and runs the file with the configuration from the file
 
-
 vim.api.nvim_set_keymap('t', '<ESC>', [[<C-\><C-n>]], { noremap = true })
+
+-- No arrows in normal mode to force using hjkl
+vim.keymap.set('n', '<Up>', '<Nop>', { noremap = true })
+vim.keymap.set('n', '<Down>', '<Nop>', { noremap = true })
+vim.keymap.set('n', '<Left>', '<Nop>', { noremap = true })
+vim.keymap.set('n', '<Right>', '<Nop>', { noremap = true })
+
+-- make the cursor blink
+-- :set guicursor=a:blinkon100
+vim.opt.guicursor = 'a:blinkon100'
