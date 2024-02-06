@@ -1,7 +1,7 @@
 set -e
 
 sudo apt -y update
-sudo apt install -y ack curl htop fzf fuse ripgrep universal-tags
+sudo apt install -y ack curl htop fzf fuse ripgrep universal-ctags
 pip install black isort
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
