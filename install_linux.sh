@@ -2,7 +2,7 @@ set -e
 
 sudo apt -y update
 sudo apt install -y ack curl htop fzf fuse ripgrep universal-ctags
-pip install black isort
+pip install black isort pynvim
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 
@@ -11,6 +11,7 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 nvm install node
 npm install -g pyright
+npm install -g bash-language-server
 
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 chmod u+x nvim.appimage
