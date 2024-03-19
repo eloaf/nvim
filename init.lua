@@ -13,6 +13,7 @@ vim.api.nvim_create_autocmd("WinLeave", {
 })
 
 -- vim.cmd("colorscheme nightfly")
+-- { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 }
 require('onedark').setup {
     style = 'darker'
 }
@@ -63,3 +64,5 @@ vim.keymap.set('n', '<Right>', '<Nop>', { noremap = true })
 -- make the cursor blink
 -- :set guicursor=a:blinkon100
 vim.opt.guicursor = 'a:blinkon100'
+
+vim.api.nvim_set_keymap('n', ',', ':set hlsearch!<CR>', { noremap = true, silent = true })

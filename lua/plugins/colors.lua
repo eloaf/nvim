@@ -5,5 +5,6 @@ return {
     {
         "rebelot/kanagawa.nvim"
     },
-    { "navarasu/onedark.nvim" }
+    { "navarasu/onedark.nvim" },
+    { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 }
 }

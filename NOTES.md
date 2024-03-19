@@ -10,6 +10,8 @@ Ideas:
 - Ignore filetypes in Telescope live grep: https://www.reddit.com/r/neovim/comments/11ukbgn/how_to_includeexclude_files_in_telescope_live_grep/
 - gx goes to link! but needs http/https. https://www.reddit.com/r/neovim/comments/xv0f4q/how_do_i_make_these_links_open_in_neovim/
 - leader + t just go to nvim tree if its already there (toggle focus) instead of ctrl-w all the time
+- gv will re-select the last visual selection!
+- What are the rest of the builtin g* commands???
 
 
 Terminal bug:
@@ -23,3 +25,5 @@ https://github.com/rest-nvim/rest.nvim
 
 https://www.youtube.com/shorts/Ofxlqz88pPA
 Amazing, you can you use the quickfix list to apply multiple commands at specific locations
+
+TODO replace copilot chat with https://github.com/CopilotC-Nvim/CopilotChat.nvim
