@@ -14,7 +14,8 @@ return {
     {
         'andythigpen/nvim-coverage',
         dependencies = {
-            { 'nvim-lua/plenary.nvim' }
+            { 'nvim-lua/plenary.nvim' },
+            { 'nvim-neotest/nvim-nio' }
         },
         -- config = function()
         --     require('nvim-coverage').setup()
