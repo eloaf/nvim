@@ -16,7 +16,12 @@ npm install -g bash-language-server
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 chmod u+x nvim.appimage
 sudo mv nvim.appimage /usr/local/bin/nvim.appimage
-echo "TERM=ansi-256color nvim.appimage" > nvim
+
+# echo "TERM=ansi-256color nvim.appimage" > nvim
+# chmod u+x nvim
+# sudo mv nvim /usr/local/bin/nvim
+
+echo -e '#!/bin/sh\nTERM=ansi-256color /usr/local/bin/nvim.appimage "$@"' > nvim
 chmod u+x nvim
 sudo mv nvim /usr/local/bin/nvim
 
