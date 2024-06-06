@@ -9,7 +9,7 @@ return {
             { 'hrsh7th/cmp-buffer' },
             { 'hrsh7th/cmp-cmdline' },
             { 'hrsh7th/cmp-nvim-lsp' },
-            { 'hrsh7th/cmp-nvim-lsp-signature-help' },
+            -- { 'hrsh7th/cmp-nvim-lsp-signature-help' },
             { 'hrsh7th/nvim-cmp' },
             { 'neovim/nvim-lspconfig' },
         },
@@ -17,15 +17,28 @@ return {
             -- TODO Seems like lua lsp is not used??
             local cmp = require('cmp')
 
-            local compare = cmp.config.compare
+            -- local compare = cmp.config.compare
 
-            local cmp_action = require('lsp-zero').cmp_action()
-            local cmp_format = require('lsp-zero').cmp_format()
+            -- local cmp_action = require('lsp-zero').cmp_action()
+            -- local cmp_format = require('lsp-zero').cmp_format()
 
             require('luasnip.loaders.from_vscode').lazy_load()
             -- https://www.reddit.com/r/neovim/comments/160vhde/is_there_a_method_to_prevent_nvimcmp_from/
 
+
+            -- require 'cmp'.setup {
+            --     sources = {
+            --         { name = 'nvim_lsp_signature_help' }
+            --     }
+            -- }
+
             cmp.setup({
+                -- enabled = function()
+                --     -- disable completion if the cursor is `Comment` syntax group.
+                --     cmp = require('cmp')
+                --     print()
+                --     return not cmp.config.context.in_syntax_group('Comment')
+                -- end,
                 snippet = {
                     expand = function(args)
                         require('luasnip').lsp_expand(args.body)
@@ -33,11 +46,11 @@ return {
                 },
                 sources = {
                     -- { name = "copilot",  group_index = 2 },
-                    { name = "nvim_lsp",                group_index = 1 },
-                    { name = "luasnip",                 group_index = 1 },
-                    { name = "nvim_lua",                group_index = 1 },
-                    { name = 'async_path',              group_index = 1 },
-                    { name = 'nvim_lsp_signature_help', group_index = 1 },
+                    { name = "nvim_lsp",   group_index = 1 },
+                    { name = "luasnip",    group_index = 1 },
+                    { name = "nvim_lua",   group_index = 1 },
+                    { name = 'async_path', group_index = 1 },
+                    -- { name = 'nvim_lsp_signature_help', group_index = 1 },
                     {
                         -- All buffers
                         name = 'buffer',
@@ -168,6 +181,12 @@ return {
                     }
                 })
             })
+            -- cmp.setup {
+            --     enabled = function()
+            --         -- disable completion if the cursor is `Comment` syntax group.
+            --         return not cmp.config.context.in_syntax_group('Comment')
+            --     end
+            -- }
         end
     }
 }

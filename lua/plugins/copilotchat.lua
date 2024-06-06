@@ -42,7 +42,7 @@ return {
         },
         -- See Commands section for default commands if you want to lazy load on them
         config = function()
-            print("CopilotChat config")
+            -- print("CopilotChat config")
             require("CopilotChat").setup {}
             -- local chat = require("CopilotChat")
             --

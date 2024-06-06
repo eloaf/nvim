@@ -90,7 +90,15 @@ return {
         -- File Pickers
         vim.keymap.set("n", "<leader>ff", ":Telescope find_files<CR>", {})
         vim.keymap.set("n", "<leader>fs", ":Telescope grep_string<CR>")
-        vim.keymap.set("n", "<leader>fg", ":Telescope live_grep<CR>")
+        -- vim.keymap.set("n", "<leader>fg", ":Telescope live_grep<CR>")
+        local function liveGrep()
+            builtin.live_grep({
+                prompt_title = "Live Grep",
+                -- cwd = "~/dev/telescope.nvim",
+            })
+        end
+
+        vim.keymap.set("n", "<leader>fg", liveGrep)
         vim.keymap.set("n", "<leader>fr", ":Telescope git_files<CR>") -- fr for "find repo"
         -- Vim pickers
         vim.keymap.set("n", "<leader>fb", ":Telescope buffers<CR>")
