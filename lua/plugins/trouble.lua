@@ -1,9 +1,3 @@
--- vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle() end)
--- vim.keymap.set("n", "<leader>xw", function() require("trouble").toggle("workspace_diagnostics") end)
--- vim.keymap.set("n", "<leader>xd", function() require("trouble").toggle("document_diagnostics") end)
--- vim.keymap.set("n", "<leader>xq", function() require("trouble").toggle("quickfix") end)
--- vim.keymap.set("n", "<leader>xl", function() require("trouble").toggle("loclist") end)
--- vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
 return {
     "folke/trouble.nvim",
     opts = {}, -- for default options, refer to the configuration section for custom setup.
@@ -39,13 +33,9 @@ return {
             "<cmd>Trouble qflist toggle<cr>",
             desc = "Quickfix List (Trouble)",
         },
+
     },
     config = function()
-        require("trouble").setup {
-            -- auto_open = true,
-            -- your configuration comes here
-            -- or leave it empty to use the default settings
-            -- refer to the configuration section below
-        }
+        require("trouble").setup {}
     end,
 }

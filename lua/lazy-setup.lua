@@ -22,51 +22,30 @@ require("lazy").setup("plugins")                                                
 
 vim.api.nvim_set_hl(0, "CmpItemKindCopilot", { fg = "#6CC644" })
 
------------------
--- Refactoring --
------------------
--- vim.keymap.set("x", "<leader>re", ":Refactor extract ")
--- vim.keymap.set("x", "<leader>rf", ":Refactor extract_to_file ")
---
--- vim.keymap.set("x", "<leader>rv", ":Refactor extract_var ")
---
--- vim.keymap.set({ "n", "x" }, "<leader>ri", ":Refactor inline_var")
---
--- vim.keymap.set("n", "<leader>rI", ":Refactor inline_func")
---
--- vim.keymap.set("n", "<leader>rb", ":Refactor extract_block")
--- vim.keymap.set("n", "<leader>rbf", ":Refactor extract_block_to_file")
-
-local refactoring = require('refactoring')
-
-vim.keymap.set("x", "<leader>re", function() refactoring.refactor('Extract Function') end)
-vim.keymap.set("x", "<leader>rf", function() refactoring.refactor('Extract Function To File') end)
-vim.keymap.set("x", "<leader>rv", function() refactoring.refactor('Extract Variable') end)
-vim.keymap.set("n", "<leader>rI", function() refactoring.refactor('Inline Function') end)
-vim.keymap.set({ "n", "x" }, "<leader>ri", function() refactoring.refactor('Inline Variable') end)
-vim.keymap.set("n", "<leader>rb", function() refactoring.refactor('Extract Block') end)
-vim.keymap.set("n", "<leader>rbf", function() refactoring.refactor('Extract Block To File') end)
-
--- load refactoring Telescope extension
-require("telescope").load_extension("refactoring")
 
 -- TODO: Show them in telescope
-local list_snips = function()
-    local ft_list = require("luasnip").available()[vim.o.filetype]
-    local ft_snips = {}
-    for _, item in pairs(ft_list) do
-        ft_snips[item.trigger] = item.name
-    end
-    print(vim.inspect(ft_snips))
-end
-
-vim.api.nvim_create_user_command("SnipList", list_snips, {})
-
-
-vim.keymap.set(
-    { "n", "x" },
-    "<leader>rr",
-    function() require('telescope').extensions.refactoring.refactors() end
+vim.api.nvim_create_user_command(
+    "SnipList",
+    function()
+        local ft_list = require("luasnip").available()[vim.o.filetype]
+        local ft_snips = {}
+        for _, item in pairs(ft_list) do
+            ft_snips[item.trigger] = item.name
+        end
+        print(vim.inspect(ft_snips))
+        local telescope = require("telescope")
+        -- Show the list of snippets in telescope
+        -- ```lua
+        -- local telescope: {
+        --     extensions: table,
+        --     load_extension: function,
+        --     register_extension: function,
+        --     setup: function,
+        --     __format_setup_keys: function,
+        -- }
+        -- ```
+    end,
+    {}
 )
 
 -- Neotest
@@ -106,17 +85,3 @@ require("coverage").setup({
         uncovered = { fg = "#F1C40F" },
     }
 })
-
-
-
-
--- require("neodev").setup({
---     library = { plugins = { "neotest" }, types = true },
--- })
--- require("neotest").setup({
---     adapters = {
---         require("neotest-python")
---     }
--- })
-
--- require("Copilot").setup({})

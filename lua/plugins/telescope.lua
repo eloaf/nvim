@@ -145,40 +145,6 @@ return {
             { noremap = true, silent = true })
         vim.keymap.set('n', 'gr', function() require('telescope.builtin').lsp_references() end,
             { noremap = true, silent = true })
-        -- vim.keymap.set('n', 'gs', function() require('telescope.builtin').TODO() end,
-        --     { noremap = true, silent = true })
-        -- vim.keymap.set('n', 'TODO', function() require('telescope.builtin').TODO() end,
-        --     { noremap = true, silent = true })
-        -- vim.keymap.set('n', 'TODO', function() require('telescope.builtin').TODO() end,
-        --     { noremap = true, silent = true })
-        -- vim.keymap.set('n', 'TODO', function() require('telescope.builtin').TODO() end,
-        --     { noremap = true, silent = true })
-
-
-        -- vim.keymap.set("n", "<leader>fs", function()
-        --     builtin.grep_string( { search = vim.fn.input("Grep > ") } );
-        -- end)
-        -- builtin.live_grep({
-        --     prompt_title = "Live Grep",
-        --     -- cwd = "~/dev/telescope.nvim",
-        -- })
-
-        -- vim.keymap.set("n", "<leader>fg", function()
-        --     -- Prepend "class " to the search term and then call grep_string
-        --     -- builtin.grep_string( { search = "class " .. vim.fn.input("find class > ") } );
-        --     builtin.live_grep({})
-        --     -- builtin.grep_string( { search = "class " .. vim.fn.input("find class > ") } );
-        -- end)
-
-        -- vim.keymap.set("n", "<leader>pc", function()
-        --     -- Prepend "class " to the search term and then call grep_string
-        --     builtin.grep_string( { search = "class " .. vim.fn.input("find class > ") } );
-        -- end)
-
-        -- vim keymap.set("n", "<leader>pc", function()
-        --     builtin.find_files
-        -- end)
-
-        vim.keymap.set("n", "<C-p>", builtin.git_files, {})
+        -- vim.keymap.set("n", "<C-p>", builtin.git_files, {})
     end
 }
