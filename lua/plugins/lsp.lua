@@ -55,6 +55,17 @@ return {
             lspconfig['pyright'].setup({
                 capabilities = capabilities
             })
+            -- configure for rust (clippy)
+            -- lspconfig['rust_analyzer'].setup({
+            --     capabilities = capabilities,
+            --     settings = {
+            --         ["rust-analyzer"] = {
+            --             checkOnSave = {
+            --                 command = "clippy"
+            --             }
+            --         }
+            --     }
+            -- })
             -- example to setup lua_ls and enable call snippets
             lspconfig.lua_ls.setup({
                 settings = {

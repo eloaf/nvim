@@ -2,6 +2,8 @@ return {
     -- Sometimes we need to run TSUpdate ourselves it seems, or `:TSInstall all` before as well
     -- https://github.com/LunarVim/LunarVim/issues/3680#issuecomment-1372559975
     "nvim-treesitter/nvim-treesitter",
+    -- https://github.com/nvim-treesitter/nvim-treesitter/tags
+    version = "v0.9.2",
     run = ':TSUpdate',
     config = function()
         require('nvim-treesitter.configs').setup({
@@ -12,7 +14,7 @@ return {
             diagnostics = { disable = { 'missing-fields' } },
 
             -- A list of parser names, or "all" (the five listed parsers should always be installed)
-            ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "bash", "yaml", "json", "make", "cmake"},
+            ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "bash", "yaml", "json", "make", "cmake" },
 
             -- Install parsers synchronously (only applied to `ensure_installed`)
             sync_install = false,

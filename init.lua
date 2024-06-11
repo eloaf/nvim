@@ -15,7 +15,8 @@ vim.api.nvim_create_autocmd("WinLeave", {
 -- vim.cmd("colorscheme nightfly")
 -- { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 }
 require('onedark').setup {
-    style = 'darker'
+    style = 'darker',
+    transparent = true
 }
 require('onedark').load()
 
@@ -66,3 +67,65 @@ vim.keymap.set('n', '<Right>', '<Nop>', { noremap = true })
 vim.opt.guicursor = 'a:blinkon100'
 
 vim.api.nvim_set_keymap('n', ',', ':set hlsearch!<CR>', { noremap = true, silent = true })
+
+-- check if ~/.config/nvim/snippets/ exists
+-- if not, create it
+
+-- Define the source and target directories
+-- local source_dir = '~/.local/share/nvim/lazy/friendly-snippets/snippets/'
+-- local target_dir = '~/.config/nvim/snippets/'
+--
+-- if vim.fn.isdirectory(vim.fn.expand(target_dir)) == 0 then
+--     vim.fn.mkdir(vim.fn.expand(target_dir), 'p')
+-- end
+--
+-- -- Function to copy files from source to target directory
+-- local function copy_files(source, target)
+--     -- Iterate over files in the source directory
+--     for _, file in ipairs(vim.fn.glob(source .. '/*', true, true)) do
+--         -- Get the filename
+--         local filename = vim.fn.fnamemodify(file, ':t')
+--         -- Check if the file exists in the target directory
+--         if vim.fn.filereadable(target .. filename) == 0 then
+--             -- If not, copy the file
+--             os.execute('cp ' .. file .. ' ' .. target .. filename)
+--         end
+--     end
+-- end
+
+-- -- Iterate over directories in the source directory
+-- for _, path in ipairs(vim.fn.glob(source_dir .. '*', true, true)) do
+--     if vim.fn.isdirectory(path) == 1 then
+--         if vim.fn.isdirectory(target_dir .. path) == 0 then
+--             vim.fn.mkdir(target_dir .. path, 'p')
+--         end
+--
+--         -- get the base name
+--         local basename = vim.fn.fnamemodify(path, ':t')
+--
+--         -- iterate over files in the subdir
+--         for _, file in ipairs(vim.fn.glob(path .. '/*', true, true)) do
+--             -- Get the filename
+--             local filename = vim.fn.fnamemodify(file, ':t')
+--             -- Check if the file exists in the target directory
+--             if vim.fn.filereadable(target_dir .. basename .. "/" .. filename) == 0 then
+--                 -- If not, copy the file
+--                 os.execute('cp ' .. file .. ' ' .. target_dir .. basename .. "/" .. filename)
+--             end
+--         end
+--     else
+--         -- check if the file exists in the target directory
+--         local filename = vim.fn.fnamemodify(path, ':t')
+--         if vim.fn.filereadable(target_dir .. filename) == 0 then
+--             -- If not, copy the file
+--             os.execute('cp ' .. path .. ' ' .. target_dir .. filename)
+--         end
+--     end
+-- end
+
+vim.api.nvim_create_autocmd('BufReadPost', {
+    desc = 'Open file at the last position it was edited earlier',
+    group = misc_augroup,
+    pattern = '*',
+    command = 'silent! normal! g`"zv'
+})
