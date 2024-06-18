@@ -8,11 +8,19 @@ return {
             -- See :help oil-columns
             columns = {
                 "icon",
-                "permissions",
+                -- "permissions",
                 "size",
-                "mtime",
+                -- "mtime",
             },
+            view_options = {
+                show_hidden = true,
+                -- natural_order = true,
+            }
         })
         vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+        vim.keymap.set("n", "<leader>o", function()
+            vim.cmd("vsplit | wincmd l")
+            require("oil").open()
+        end)
     end,
 }

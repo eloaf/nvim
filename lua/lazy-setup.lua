@@ -85,3 +85,142 @@ require("coverage").setup({
         uncovered = { fg = "#F1C40F" },
     }
 })
+
+
+-----------------------------------------------
+
+-- default configuration
+require('illuminate').configure({})
+
+-----------------------------------------------
+
+-- function Foo()
+--     local current_node = vim.treesitter.get_node({}) -- get the node at the cursor position in the current buffer
+--     if current_node == nil then
+--         print("No node found")
+--         return
+--     end
+--     print(current_node:type())   -- call the type method on the node
+--     print(current_node:range())  -- call the range method on the node
+--     print(current_node:parent()) -- get the parent node
+-- end
+
+-- function MatchFunction()
+--     local current_node = vim.treesitter.get_node({}) -- get the node at the cursor position in the current buffer
+--     if current_node == nil then
+--         print("!!! No node found !!!")
+--         return nil
+--     end
+
+--     if current_node:type() == "identifier" then
+--         print("Found identifier")
+
+--         -- check that current node's parent is a call
+--         local parent = current_node:parent()
+--         if parent == nil then
+--             print("No parent found")
+--             return nil
+--         end
+--         print("parent: " .. parent:type())
+
+--         if not parent or parent:type() ~= "call" then
+--             print("Not a call")
+--             return nil
+--         end
+
+--         -- if parent is a call, then check if its children have
+--         -- an identifier and a function
+--         local children = {}
+--         for child in parent:iter_children() do
+--             children[child:type()] = child
+--             print(child:type())
+--         end
+
+--         if children["identifier"] and children["argument_list"] then
+--             print("Found identifier and function")
+--             print("identifier: " .. children["identifier"]:range())
+--             print("function: " .. children["argument_list"]:range())
+--         else
+--             print("No identifier or function found")
+--             return
+--         end
+
+--         local arguments = children["argument_list"]
+--         if arguments == nil then
+--             print("No arguments found")
+--             return nil
+--         end
+--         for i = 0, arguments:named_child_count() - 1 do
+--             local argument = arguments:named_child(i)
+--             print(argument:type())
+--         end
+
+--         -- Store all the arguments's text in a table
+--         local args = {}
+--         for i = 0, arguments:named_child_count() - 1 do
+--             local argument = arguments:named_child(i)
+--             local start_row, start_col, end_row, end_col = argument:range()
+--             local text = vim.api.nvim_buf_get_text(
+--                 0,
+--                 start_row,
+--                 start_col,
+--                 end_row,
+--                 end_col,
+--                 {}
+--             )
+--             for _, line in ipairs(text) do
+--                 print(line)
+--                 table.insert(args, line)
+--             end
+--         end
+
+--         -- Get the function name
+--         local start_row, start_col, end_row, end_col = children["identifier"]:range()
+--         local function_name = vim.api.nvim_buf_get_text(
+--             0,
+--             start_row,
+--             start_col,
+--             end_row,
+--             end_col,
+--             {}
+--         )
+--         print("function_name: " .. function_name[1])
+
+--         -- Delete the text of the function call, and replace it with:
+--         -- function_name(
+--         --   args[1],
+--         --   args[2],
+--         --   etc,
+--         -- )
+--         -- in order t ocall the function with the same arguments
+--         -- with one argument per line
+--         local new_text = function_name[1] .. "(\n"
+--         for i, arg in ipairs(args) do
+--             new_text = new_text .. "  " .. arg
+--             if i < #args then
+--                 new_text = new_text .. ",\n"
+--             else
+--                 new_text = new_text .. "\n"
+--             end
+--         end
+--         new_text = new_text .. ")\n"
+--         print(new_text)
+
+--         -- replace the with the new text
+--         -- Split the new_text into a list of lines
+--         local lines = {}
+--         for s in new_text:gmatch("[^\r\n]+") do
+--             table.insert(lines, s)
+--         end
+
+--         -- replace the with the new lines
+--         vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, lines)
+--     end
+-- end
+
+-- vim.keymap.set(
+--     "n",
+--     "<leader>L",
+--     "<cmd>lua MatchFunction()<CR>",
+--     { noremap = true, silent = true }
+-- )

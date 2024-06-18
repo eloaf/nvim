@@ -44,9 +44,19 @@ return {
         },
         config = function()
             require("scissors").setup()
-            vim.keymap.set("n", "<leader>se", function() require("scissors").editSnippet() end)
-            -- When used in visual mode prefills the selection as body.
-            vim.keymap.set({ "n", "x" }, "<leader>sa", function() require("scissors").addNewSnippet() end)
+            -- vim.keymap.set("n", "<leader>se", function() require("scissors").editSnippet() end)
+            -- -- When used in visual mode prefills the selection as body.
+            -- vim.keymap.set({ "n", "x" }, "<leader>sa", function() require("scissors").addNewSnippet() end)
+            local function editSnippet()
+                require("scissors").editSnippet()
+            end
+
+            local function addNewSnippet()
+                require("scissors").addNewSnippet()
+            end
+
+            vim.keymap.set("n", "<leader>se", editSnippet)
+            vim.keymap.set({ "n", "x" }, "<leader>sa", addNewSnippet)
         end
     },
 }
