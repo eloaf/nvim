@@ -91,6 +91,13 @@ vim.opt.guicursor = 'a:blinkon100'
 
 vim.api.nvim_set_keymap('n', ',', ':set hlsearch!<CR>', { noremap = true, silent = true })
 
+-- Replace <Tab> with >> in normal mode and > in visual mode
+vim.api.nvim_set_keymap('n', '<Tab>', '>>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<Tab>', '>gv', { noremap = true, silent = true })
+-- Replace <S-Tab> with << in normal mode and < in visual mode
+vim.api.nvim_set_keymap('n', '<S-Tab>', '<<', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<S-Tab>', '<gv', { noremap = true, silent = true })
+
 -- check if ~/.config/nvim/snippets/ exists
 -- if not, create it
 
