@@ -98,6 +98,19 @@ vim.api.nvim_set_keymap('v', '<Tab>', '>gv', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<S-Tab>', '<<', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('v', '<S-Tab>', '<gv', { noremap = true, silent = true })
 
+-- Function to delete a line without yanking if it's empty or contains only spaces
+function Delete_line_without_yanking()
+    local line = vim.api.nvim_get_current_line()
+    if line:match("^%s*$") then
+        vim.api.nvim_command('normal! "_dd')
+    else
+        vim.api.nvim_command('normal! dd')
+    end
+end
+
+-- Map the 'dd' key to the custom function
+vim.api.nvim_set_keymap('n', 'dd', ':lua Delete_line_without_yanking()<CR>', { noremap = true, silent = true })
+
 -- check if ~/.config/nvim/snippets/ exists
 -- if not, create it
 
