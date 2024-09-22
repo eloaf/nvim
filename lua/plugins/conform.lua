@@ -11,6 +11,8 @@ return {
                 -- Use a sub-list to run only the first available formatter
                 -- javascript = { { "prettierd", "prettier" } },
                 yaml = { "yamlfmt" },
+                -- https://github.com/koalaman/shellcheck
+                sh = { "shellcheck" },
             },
         })
         conform.setup({

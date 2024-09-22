@@ -65,7 +65,17 @@ return {
             -- See Commands section for default commands if you want to lazy load on them
             config = function()
                 -- print("CopilotChat config")
-                require("CopilotChat").setup {}
+                require("CopilotChat").setup(
+                    {
+                        window = {
+                            layout = 'float',
+                            relative = 'cursor',
+                            width = 1,
+                            height = 0.4,
+                            row = 1
+                        }
+                    }
+                )
                 -- local chat = require("CopilotChat")
                 --
                 -- -- Open chat window
