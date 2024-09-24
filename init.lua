@@ -303,6 +303,54 @@ Foobar(1, 2, 3)
 vim.lsp.set_log_level("debug")
 
 
+_G.match_function_calls = function()
+    local ts = vim.treesitter
+    local parsers = require('nvim-treesitter.parsers')
+
+    local print_node = function(node)
+        print(ts.get_node_text(node, 0))
+    end
+
+    local parser = parsers.get_parser()
+    local lang = parser:lang()
+    -- print("lang", lang)
+    local tree = parser:parse()[1]
+    local root = tree:root()
+    -- print_node(root)
+
+    local query_string = [[
+        (call
+          function: (identifier) @function
+          arguments: (argument_list) @arguments
+        )
+    ]]
+
+    local query = ts.query.parse(lang, query_string)
+
+    -- Get the current line number
+    local current_line = vim.fn.line('.')
+
+    -- Run iter_matches only on the current line
+    for _, matches, _ in query:iter_matches(root, 0, current_line - 1, current_line, { all = true }) do
+        for id, match in ipairs(matches) do
+            local name = query.captures[id] -- name of the capture in the query
+            for _, node in ipairs(match) do
+                print(name)
+                print_node(node)
+                print()
+            end
+        end
+    end
+end
+
+vim.api.nvim_set_keymap(
+    'n',
+    '<leader>mf',
+    ':lua match_function_calls()<CR>',
+    { noremap = true, silent = true }
+)
+
+
 _G.get_function_arguments = function()
     -- Create the params for the LSP request
     local params = vim.lsp.util.make_position_params()
@@ -311,6 +359,8 @@ _G.get_function_arguments = function()
     -- Debugging information
     print("Cursor position: row =", row, "col =", col)
     print("Initial params: ", vim.inspect(params))
+
+    -- TODO: I will have to adjust the position to be inside of the function?
 
     -- Adjust the position if the cursor is at the beginning of the line
     if col == 0 then
@@ -366,42 +416,8 @@ _G.get_function_arguments = function()
     print("Key: ", key)
     print("Value: ", vim.inspect(result[key]))
 
-
-    -- Result:  {
-    --   [3] = {}
-    -- }
-
-    -- local result2 = vim.lsp.buf_request(
-    --     0,
-    --     'textDocument/signatureHelp',
-    --     params,
-    --     vim.lsp.with(function(err, result, ctx)
-    --         print("Result2: ", vim.inspect(result))
-    --     end, {})
-    -- )
-
-    -- Result:  { {
-    --     result = {
-    --       signatures = { {
-    --           activeParameter = 0,
-    --           documentation = {
-    --             kind = "markdown",
-    --             value = " Function that adds 3 numbers\n @param a number: The first number\n @param b number: The second number\n @param c number: The third number\n @return number: The sum of the three numbers"
-    --           },
-    --           label = "function Foobar(a: any, b: any, c: any)",
-    --           parameters = { {
-    --               label = { 16, 22 }
-    --             }, {
-    --               label = { 24, 30 }
-    --             }, {
-    --               label = { 32, 38 }
-    --             } }
-    --         } }
-    --     }
-    --   } }
-
-    if result and result[1] and result[1].result and result[1].result.signatures then
-        local signature = result[1].result.signatures[1]
+    if result and result[key] and result[key].result and result[key].result.signatures then
+        local signature = result[key].result.signatures[1]
         local label = signature.label
         local parameters = signature.parameters
 
@@ -421,3 +437,9 @@ Foobar(1, 2, 3)
 
 -- Bind the function to a command or keymap for easy testing
 vim.api.nvim_set_keymap('n', '<leader>fa', ':lua get_function_arguments()<CR>', { noremap = true, silent = true })
+
+
+-- NOTE: Ideas!
+-- 1. keymap that will find the declared variables on a line, then create a print statement
+-- or logging statement for them.
+-- 2. Line drag feature (moving lines up or down)
