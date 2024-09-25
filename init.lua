@@ -303,20 +303,22 @@ Foobar(1, 2, 3)
 vim.lsp.set_log_level("debug")
 
 
-_G.match_function_calls = function()
+
+Foobar(1, 2, 3)
+
+
+local function match_function_calls()
     local ts = vim.treesitter
     local parsers = require('nvim-treesitter.parsers')
 
-    local print_node = function(node)
-        print(ts.get_node_text(node, 0))
-    end
+    -- local print_node = function(node)
+    --     print("Node text = " .. ts.get_node_text(node, 0))
+    -- end
 
     local parser = parsers.get_parser()
     local lang = parser:lang()
-    -- print("lang", lang)
     local tree = parser:parse()[1]
     local root = tree:root()
-    -- print_node(root)
 
     local query_string = [[
         (call
@@ -327,29 +329,51 @@ _G.match_function_calls = function()
 
     local query = ts.query.parse(lang, query_string)
 
-    -- Get the current line number
     local current_line = vim.fn.line('.')
 
-    -- Run iter_matches only on the current line
+    local result = {}
+    local iterator = 0
+
     for _, matches, _ in query:iter_matches(root, 0, current_line - 1, current_line, { all = true }) do
+        iterator = iterator + 1
+        local item = {}
         for id, match in ipairs(matches) do
             local name = query.captures[id] -- name of the capture in the query
             for _, node in ipairs(match) do
-                print(name)
-                print_node(node)
-                print()
+                if item[name] ~= nil then
+                    error("Item " .. name .. " already exists")
+                end
+                item[name] = node
             end
         end
+        result[iterator] = item
     end
+
+    return result
 end
 
-vim.api.nvim_set_keymap(
-    'n',
-    '<leader>mf',
-    ':lua match_function_calls()<CR>',
-    { noremap = true, silent = true }
-)
 
+local function lsp_supports_signature_help()
+    -- Ensure the LSP client is attached
+    local clients = vim.lsp.get_clients()
+    if next(clients) == nil then
+        print("No LSP client attached")
+        return false
+    else
+        print("LSP client attached")
+    end
+
+    -- Check if the client supports signatureHelp
+    local client = clients[1]
+    if not client.server_capabilities.signatureHelpProvider then
+        print("LSP server does not support signatureHelp")
+        return false
+    else
+        print("LSP server supports signatureHelp")
+    end
+
+    return true
+end
 
 _G.get_function_arguments = function()
     -- Create the params for the LSP request
@@ -433,10 +457,99 @@ _G.get_function_arguments = function()
     end
 end
 
-Foobar(1, 2, 3)
+
+local function get_params_from_arguments_node(arguments_node)
+    -- Extract the position from arguments_node
+    local start_row, start_col = arguments_node:start()
+
+    -- start_row = start_row + 1
+    -- start_col = start_col + 1
+
+    -- Create params using the position
+    local params = {
+        textDocument = vim.lsp.util.make_text_document_params(),
+        position = { line = start_row, character = start_col }
+    }
+
+    -- -- Assign row and col from the extracted position
+    -- local row, col = params.position.line, params.position.col
+
+    -- -- Debug prints
+    -- print("Row:", row)
+    -- print("Col:", col)
+
+    -- Fetch the line from the buffer
+    -- local line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+    -- print("Line:", line)
+
+    -- -- Check if the line is valid and print the text from the position
+    -- if line then
+    --     print("Text:", line:sub(col))
+    -- else
+    --     print("Line is nil")
+    -- end
+
+    return params
+end
+
+--- comment
+--- @param arguments_node TSNode
+local function get_function_info(arguments_node)
+    print("Getting function info")
+    local params = get_params_from_arguments_node(arguments_node)
+
+    params.position.character = params.position.character + 1
+    -- params.position.line = params.position.line + 1
+
+    -- local default_params = vim.lsp.util.make_position_params()
+    print("Params:", vim.inspect(params))
+    -- print("Default params:", vim.inspect(default_params))
+    local result = vim.lsp.buf_request_sync(0, "textDocument/signatureHelp", params, 10000)
+    if result == nil then
+        error("No result returned!")
+    end
+    print("Result: ", vim.inspect(result))
+end
+
+_G.expand_keywords = function()
+    -- We need to retrieve two things:
+    -- 1. The function call and its arguments on the current line (could be multiple?)
+    -- 2. The function definition and its arguments
+    -- We use treesitter to get the function call and its arguments,
+    -- and the LSP to get the function definition and its arguments
+
+    if not lsp_supports_signature_help() then
+        return
+    end
+
+    print("Getting function arguments on the current line")
+
+    local function_calls = match_function_calls()
+
+    for _, function_call in ipairs(function_calls) do
+        -- print("Function call:")
+        -- print(function_call["function"])
+        -- print(function_call["arguments"])
+        local function_node = function_call["function"]
+        local arguments_node = function_call["arguments"]
+
+        local function_info = get_function_info(arguments_node)
+        print("Function info: ", vim.inspect(function_info))
+        print("\n")
+    end
+end
+
+
 
 -- Bind the function to a command or keymap for easy testing
 vim.api.nvim_set_keymap('n', '<leader>fa', ':lua get_function_arguments()<CR>', { noremap = true, silent = true })
+
+vim.api.nvim_set_keymap(
+    'n',
+    '<leader>mf',
+    ':lua expand_keywords()<CR>',
+    { noremap = true, silent = true }
+)
 
 
 -- NOTE: Ideas!
