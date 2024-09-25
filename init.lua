@@ -304,9 +304,6 @@ vim.lsp.set_log_level("debug")
 
 
 
-Foobar(1, 2, 3)
-
-
 local function match_function_calls()
     local ts = vim.treesitter
     local parsers = require('nvim-treesitter.parsers')
@@ -492,23 +489,52 @@ local function get_params_from_arguments_node(arguments_node)
     return params
 end
 
---- comment
+--- TODO: comment, rename this function? it returns the arguments list...
 --- @param arguments_node TSNode
 local function get_function_info(arguments_node)
-    print("Getting function info")
+    -- print("Getting function info")
     local params = get_params_from_arguments_node(arguments_node)
 
+    -- WARNING: Not sure I understand this...
     params.position.character = params.position.character + 1
     -- params.position.line = params.position.line + 1
 
-    -- local default_params = vim.lsp.util.make_position_params()
-    print("Params:", vim.inspect(params))
-    -- print("Default params:", vim.inspect(default_params))
+    -- print("Params:", vim.inspect(params))
     local result = vim.lsp.buf_request_sync(0, "textDocument/signatureHelp", params, 10000)
     if result == nil then
         error("No result returned!")
     end
-    print("Result: ", vim.inspect(result))
+    -- print("Result: ", vim.inspect(result))
+
+    -- TODO: May want to reformat the results...
+
+    -- Get the key of the result
+    local key = next(result)
+    print("Key: ", key)
+    print("Value: ", vim.inspect(result[key]))
+
+    local arguments = {}
+
+    if result and result[key] and result[key].result and result[key].result.signatures then
+        local signature = result[key].result.signatures[1]
+        local label = signature.label
+        local parameters = signature.parameters
+
+        print("Function arguments:")
+        for _, param in ipairs(parameters) do
+            local start_idx = param.label[1] + 1
+            local end_idx = param.label[2]
+            local arg_name = label:sub(start_idx, end_idx)
+            -- split by `:` and get the first part
+            arg_name = arg_name:match("([^:]+)")
+            print("arg name=" .. arg_name)
+            arguments[#arguments + 1] = arg_name
+        end
+    else
+        error("No signature help available!")
+    end
+
+    return arguments
 end
 
 _G.expand_keywords = function()
@@ -530,6 +556,7 @@ _G.expand_keywords = function()
         -- print("Function call:")
         -- print(function_call["function"])
         -- print(function_call["arguments"])
+
         local function_node = function_call["function"]
         local arguments_node = function_call["arguments"]
 
@@ -539,6 +566,28 @@ _G.expand_keywords = function()
     end
 end
 
+
+
+-- WARNING: The query is not the same between languages it seems!
+-- We'll need to create a query for each language we want to support...
+
+-- NOTE: in lua
+-- (function_call ; [565, 0] - [565, 15]
+--   name: (identifier) ; [565, 0] - [565, 6]
+--   arguments: (arguments ; [565, 6] - [565, 15]
+--     (number) ; [565, 7] - [565, 8]
+--     (number) ; [565, 10] - [565, 11]
+--     (number))) ; [565, 13] - [565, 14]
+Foobar(1, 2, 3)
+
+-- NOTE: in python
+-- (call ; [51, 0] - [51, 21]
+--   function: (identifier) ; [51, 0] - [51, 12]
+--   arguments: (argument_list ; [51, 12] - [51, 21]
+--     (integer) ; [51, 13] - [51, 14]
+--     (integer) ; [51, 16] - [51, 17]
+--     (integer)))) ; [51, 19] - [51, 20]
+-- fn_with_args(1, 2, 3)
 
 
 -- Bind the function to a command or keymap for easy testing
