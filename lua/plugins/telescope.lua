@@ -99,11 +99,17 @@ return {
         end
 
         vim.keymap.set("n", "<leader>fg", liveGrep)
-        vim.keymap.set("n", "<leader>fr", ":Telescope git_files<CR>") -- fr for "find repo"
+        -- vim.keymap.set("n", "<leader>fr", ":Telescope git_files<CR>") -- fr for "find repo"
+        vim.keymap.set("n", "<leader>fr", ":Telescope registers<CR>") -- fr for "find repo"
+        -- vim.keymap.set("n", "<leader>fr", ":Telescope registers<CR>") -- fr for "find repo"
+
         -- Vim pickers
         vim.keymap.set("n", "<leader>fb", ":Telescope buffers<CR>")
         vim.keymap.set("n", "<leader>fo", ":Telescope oldfiles<CR>")
-        vim.keymap.set("n", "<leader>fc", ":Telescope commands<CR>")
+        -- vim.keymap.set("n", "<leader>fc", ":Telescope commands<CR>")
+        vim.keymap.set("n", "<leader>fc", ":Telescope current_buffer_fuzzy_find<CR>")
+        -- vim.keymap.set("n", "<leader>fc", ":Telescope command_history<CR>")
+
         vim.keymap.set("n", "<leader>fh", ":Telescope help_tags<CR>")
         vim.keymap.set("n", "<leader>fk", ":Telescope keymaps<CR>")
 
