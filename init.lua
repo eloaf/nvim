@@ -304,22 +304,23 @@ local function find_first_node_of_type_bfs(node, target_type)
 end
 
 
-local function match_argument_nodes()
+local function match_argument_nodes(mode)
     local parser = parsers.get_parser()
     local tree = parser:parse()[1]
     local query = get_query()
 
-    local mode = vim.fn.mode()
     local start_line, end_line
 
-    if mode == 'v' or mode == 'V' then
+    if mode == 'v' then
         -- Visual mode
         start_line = vim.fn.line("'<") - 1
-        end_line = vim.fn.line("'>") + 1
-    else
+        end_line = vim.fn.line("'>")
+    elseif mode == 'n' then
         -- Normal mode
         start_line = vim.fn.line('.') - 1
         end_line = start_line + 1
+    else
+        error("Invalid mode")
     end
 
     local results = {}
@@ -472,14 +473,21 @@ local function get_args(argument_values, function_info)
 end
 
 
-_G.expand_keywords = function()
+_G.expand_keywords = function(mode)
     local debug = false
-
     if not lsp_supports_signature_help(debug) then
         return
     end
 
-    local argument_nodes = match_argument_nodes()
+    local argument_nodes = match_argument_nodes(mode)
+
+    -- local argument_nodes
+    -- vim.schedule(function()
+    --     argument_nodes = match_argument_nodes()
+    -- end)
+    -- vim.defer_fn(function()
+    --     print(argument_nodes)
+    -- end, 0)
 
     for i = #argument_nodes, 1, -1 do
         local arguments_node = argument_nodes[i]
@@ -504,15 +512,22 @@ end
 vim.api.nvim_set_keymap(
     'n',
     '<leader>mf',
-    ':lua expand_keywords()<CR>',
+    ':lua expand_keywords("n")<CR>',
     { noremap = true, silent = true }
 )
 vim.api.nvim_set_keymap(
     'v',
     '<leader>mf',
-    ':lua expand_keywords()<CR>',
+    ':lua expand_keywords("v")<CR>',
     { noremap = true, silent = true }
 )
+
+-- NOTE: Ideas for argument expansion
+-- Automatically add default kwargs into the call (verbose)
+-- Reorder kwargs into the same order as the function definition
+-- Make sure it works in relevant languages
+-- Manage python sentinel?
+-- Un-expansion (remove the function argument)
 
 
 -- NOTE: Ideas!
