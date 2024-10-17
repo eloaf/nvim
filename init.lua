@@ -207,11 +207,53 @@ end
 --     (integer)))) ; [51, 19] - [51, 20]
 -- fn_with_args(1, 2, 3)
 
+
+-- NOTE: According to ChatGPT: https://chatgpt.com/share/670be543-bf70-800a-a3e4-1e4b7611d074
+-- (
+--   (call
+--     function: [
+--       (identifier) @function
+--       (attribute
+--         object: (_)* @object
+--         attribute: (identifier) @method
+--       )
+--     ]
+--     arguments: (argument_list) @arguments
+--   )
+-- )
+
+
 local QueryStrings = {
+    -- python = [[
+    --     (call
+    --       function: (identifier) @function
+    --       arguments: (argument_list) @arguments
+    --     )
+    -- ]],
+    -- (
+    --   (call
+    --     function: [
+    --       (identifier) @function
+    --       (attribute
+    --         object: (_)* @object
+    --         attribute: (identifier) @method
+    --       )
+    --         ]
+    --     arguments: (argument_list) @arguments
+    --   ) @call
+    -- )
     python = [[
-        (call
-          function: (identifier) @function
-          arguments: (argument_list) @arguments
+        (
+          (call
+            function: [
+              (identifier)
+              (attribute
+                object: (_)*
+                attribute: (identifier)
+              )
+                ]
+            arguments: (argument_list)
+          ) @call
         )
     ]],
     lua = [[
@@ -239,48 +281,57 @@ local function get_query()
     return query
 end
 
----comment
----@return table<number, table<string, TSNode>>
-local function match_function_calls()
+---Does BFS on the tree under `node` to find the first node of type `target_type`
+---@param node TSNode
+---@param target_type string
+---@return TSNode
+local function find_first_node_of_type_bfs(node, target_type)
+    local queue = { node }
+
+    while #queue > 0 do
+        local current_node = table.remove(queue, 1) -- Dequeue the first element
+
+        if current_node:type() == target_type then
+            return current_node
+        end
+
+        for child in current_node:iter_children() do
+            table.insert(queue, child) -- Enqueue child nodes
+        end
+    end
+
+    error("Node not found")
+end
+
+
+local function match_argument_nodes()
     local parser = parsers.get_parser()
     local tree = parser:parse()[1]
-    local root = tree:root()
-
     local query = get_query()
 
-    local current_line = vim.fn.line('.')
+    local mode = vim.fn.mode()
+    local start_line, end_line
 
-    local result = {}
-    local iterator = 0
-
-    -- vim.treesitter.Query:iter_matches(
-    --     node: TSNode,
-    --     source: string|integer,
-    --     start?: integer,
-    --     stop?: integer,
-    --     opts?: table
-    -- )
-    for _, matches, _ in query:iter_matches(root, 0, current_line - 1, current_line, { all = true }) do
-        iterator = iterator + 1
-        local item = {}
-        for id, match in ipairs(matches) do
-            local name = query.captures[id] -- name of the capture in the query
-            for _, node in ipairs(match) do
-                if item[name] ~= nil then
-                    error("Item " .. name .. " already exists")
-                end
-                item[name] = node
-            end
-        end
-        result[iterator] = item
+    if mode == 'v' or mode == 'V' then
+        -- Visual mode
+        start_line = vim.fn.line("'<") - 1
+        end_line = vim.fn.line("'>") + 1
+    else
+        -- Normal mode
+        start_line = vim.fn.line('.') - 1
+        end_line = start_line + 1
     end
 
-    if vim.tbl_isempty(result) then
-        error("No function calls found")
+    local results = {}
+
+    for _, node, _, _ in query:iter_captures(tree:root(), 0, start_line, end_line) do
+        local arguments_node = find_first_node_of_type_bfs(node, "argument_list")
+        results[#results + 1] = arguments_node
     end
 
-    return result
+    return results
 end
+
 
 ---@param arguments_node TSNode
 ---@return table
@@ -376,22 +427,45 @@ local function get_argument_values(arguments_node)
     return argument_values
 end
 
-local function get_args(argument_values, function_info)
-    if #function_info ~= #argument_values then
-        error("Number of arguments do not match")
+---@param str string
+local function contains_equal_outside_of_parentheses(str)
+    for i = 1, #str do
+        local char = str:sub(i, i)
+        if char == "=" then
+            return true
+        elseif char == "(" then
+            return false
+        end
     end
+    return false
+end
+
+--- Returns a table of arguments using their keyword version.
+---@param argument_values table<number, string>
+---@param function_info table<number, string>
+---@return table<number, string>
+local function get_args(argument_values, function_info)
+    -- NOTE: in python you can't have non-keyword arguments after keyword arguments
+    -- Therefore, we can just append the rest of the arguments as they are as soon
+    -- as we encounter a keyword argument.
 
     local args = {}
 
-    for i = 1, #function_info do
+    for i = 1, #argument_values do
         local arg_name = function_info[i]
-        --- @type string
         local arg_value = argument_values[i]
-        if arg_value:sub(1, #arg_name + 1) == arg_name .. "=" then
-            args[#args + 1] = arg_value
+
+        if contains_equal_outside_of_parentheses(arg_value) then
+            -- This is a keyword argument, we can just append the rest of the arguments
+            break
         else
             args[#args + 1] = arg_name .. "=" .. arg_value
         end
+    end
+
+    for i = #args + 1, #argument_values do
+        local arg_value = argument_values[i]
+        args[#args + 1] = arg_value
     end
 
     return args
@@ -405,11 +479,10 @@ _G.expand_keywords = function()
         return
     end
 
-    local function_calls = match_function_calls()
+    local argument_nodes = match_argument_nodes()
 
-    for i = #function_calls, 1, -1 do
-        local function_call = function_calls[i]
-        local arguments_node = function_call["arguments"]
+    for i = #argument_nodes, 1, -1 do
+        local arguments_node = argument_nodes[i]
         local function_info = get_function_info(arguments_node)
         local argument_values = get_argument_values(arguments_node)
         local args = get_args(argument_values, function_info)
@@ -427,8 +500,15 @@ _G.expand_keywords = function()
     end
 end
 
+
 vim.api.nvim_set_keymap(
     'n',
+    '<leader>mf',
+    ':lua expand_keywords()<CR>',
+    { noremap = true, silent = true }
+)
+vim.api.nvim_set_keymap(
+    'v',
     '<leader>mf',
     ':lua expand_keywords()<CR>',
     { noremap = true, silent = true }
