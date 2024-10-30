@@ -174,3 +174,376 @@ vim.api.nvim_create_autocmd('BufReadPost', {
 })
 
 -- vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#3c3836" })
+
+------------------------------------------------------------------
+
+---Prints the message if debug is true
+---@param msg string
+---@param debug boolean
+local function maybe_print(msg, debug)
+    if debug then
+        print(msg)
+    end
+end
+
+-- WARNING: The query is not the same between languages it seems!
+-- We'll need to create a query for each language we want to support...
+
+-- NOTE: in lua
+-- (function_call ; [565, 0] - [565, 15]
+--   name: (identifier) ; [565, 0] - [565, 6]
+--   arguments: (arguments ; [565, 6] - [565, 15]
+--     (number) ; [565, 7] - [565, 8]
+--     (number) ; [565, 10] - [565, 11]
+--     (number))) ; [565, 13] - [565, 14]
+-- Foobar(1, 2, 3)
+
+-- NOTE: in python
+-- (call ; [51, 0] - [51, 21]
+--   function: (identifier) ; [51, 0] - [51, 12]
+--   arguments: (argument_list ; [51, 12] - [51, 21]
+--     (integer) ; [51, 13] - [51, 14]
+--     (integer) ; [51, 16] - [51, 17]
+--     (integer)))) ; [51, 19] - [51, 20]
+-- fn_with_args(1, 2, 3)
+
+
+-- NOTE: According to ChatGPT: https://chatgpt.com/share/670be543-bf70-800a-a3e4-1e4b7611d074
+-- (
+--   (call
+--     function: [
+--       (identifier) @function
+--       (attribute
+--         object: (_)* @object
+--         attribute: (identifier) @method
+--       )
+--     ]
+--     arguments: (argument_list) @arguments
+--   )
+-- )
+
+
+local QueryStrings = {
+    -- python = [[
+    --     (call
+    --       function: (identifier) @function
+    --       arguments: (argument_list) @arguments
+    --     )
+    -- ]],
+    -- (
+    --   (call
+    --     function: [
+    --       (identifier) @function
+    --       (attribute
+    --         object: (_)* @object
+    --         attribute: (identifier) @method
+    --       )
+    --         ]
+    --     arguments: (argument_list) @arguments
+    --   ) @call
+    -- )
+    python = [[
+        (
+          (call
+            function: [
+              (identifier)
+              (attribute
+                object: (_)*
+                attribute: (identifier)
+              )
+                ]
+            arguments: (argument_list)
+          ) @call
+        )
+    ]],
+    lua = [[
+        (function_call
+          name: (identifier) @function
+          arguments: (arguments) @arguments
+        )
+    ]]
+}
+
+local parsers = require('nvim-treesitter.parsers')
+
+local function get_query()
+    local ts = vim.treesitter
+    local parser = parsers.get_parser()
+    local lang = parser:lang()
+    local query_string = QueryStrings[lang]
+
+    if query_string == nil then
+        error("Query string not found for language " .. lang)
+    end
+
+    local query = ts.query.parse(lang, query_string)
+
+    return query
+end
+
+---Does BFS on the tree under `node` to find the first node of type `target_type`
+---@param node TSNode
+---@param target_type string
+---@return TSNode
+local function find_first_node_of_type_bfs(node, target_type)
+    local queue = { node }
+
+    while #queue > 0 do
+        local current_node = table.remove(queue, 1) -- Dequeue the first element
+
+        if current_node:type() == target_type then
+            return current_node
+        end
+
+        for child in current_node:iter_children() do
+            table.insert(queue, child) -- Enqueue child nodes
+        end
+    end
+
+    error("Node not found")
+end
+
+
+---@param mode string
+---@return table<integer, TSNode>
+local function match_argument_nodes(mode)
+    local parser = parsers.get_parser()
+    local tree = parser:parse()[1]
+    local query = get_query()
+
+    local start_line, end_line
+
+    if mode == 'v' then
+        -- Visual mode
+        start_line = vim.fn.line("'<") - 1
+        end_line = vim.fn.line("'>")
+    elseif mode == 'n' then
+        -- Normal mode
+        start_line = vim.fn.line('.') - 1
+        end_line = start_line + 1
+    else
+        error("Invalid mode")
+    end
+
+    local results = {}
+
+    for _, node, _, _ in query:iter_captures(tree:root(), 0, start_line, end_line) do
+        local arguments_node = find_first_node_of_type_bfs(node, "argument_list")
+        results[#results + 1] = arguments_node
+    end
+
+    return results
+end
+
+
+---@param arguments_node TSNode
+---@return table
+local function get_params_from_arguments_node(arguments_node)
+    -- Extract the position from arguments_node
+    local start_row, start_col = arguments_node:start()
+    -- Create params using the position
+    local params = {
+        textDocument = vim.lsp.util.make_text_document_params(),
+        position = { line = start_row, character = start_col }
+    }
+    return params
+end
+
+
+--- TODO: comment, rename this function? it returns the arguments list...
+--- @param arguments_node TSNode
+local function get_function_info(arguments_node)
+    local params = get_params_from_arguments_node(arguments_node)
+
+    -- WARNING: Not sure I understand this...
+    params.position.character = params.position.character + 1
+    -- params.position.line = params.position.line + 1
+
+    local result = vim.lsp.buf_request_sync(0, "textDocument/signatureHelp", params, 10000)
+
+    if result == nil then
+        error("No result returned!")
+    end
+
+    -- TODO: May want to reformat the results...
+    local key = next(result)
+
+    local arguments = {}
+
+    if result and result[key] and result[key].result and result[key].result.signatures then
+        local signature = result[key].result.signatures[1]
+        local label = signature.label
+        local parameters = signature.parameters
+
+        for _, param in ipairs(parameters) do
+            local start_idx = param.label[1] + 1
+            local end_idx = param.label[2]
+            local arg_name = label:sub(start_idx, end_idx)
+            -- split by `:` and get the first part
+            arg_name = arg_name:match("([^:]+)")
+            -- print("arg name=" .. arg_name)
+            arguments[#arguments + 1] = arg_name
+        end
+    else
+        error("No signature help available!")
+    end
+
+    return arguments
+end
+
+---Checks if the current LSP client supports signature help
+---@param debug boolean: Whether to print debug information
+---@return boolean
+local function lsp_supports_signature_help(debug)
+    -- Ensure the LSP client is attached
+    local clients = vim.lsp.get_clients()
+    if next(clients) == nil then
+        maybe_print("No LSP client attached", debug)
+        return false
+    end
+    maybe_print("LSP client attached", debug)
+
+    -- Check if the client supports signatureHelp
+    local client = clients[1]
+    if not client.server_capabilities.signatureHelpProvider then
+        maybe_print("LSP server does not support signatureHelp", debug)
+        return false
+    else
+        maybe_print("LSP server supports signatureHelp", debug)
+    end
+
+    return true
+end
+
+--- @param arguments_node TSNode
+--- @return table<number, string>
+local function get_argument_values(arguments_node)
+    local argument_values = {}
+    for i = 0, arguments_node:named_child_count() - 1 do
+        local arg = arguments_node:named_child(i)
+        if arg == nil then
+            error("Argument is nil")
+        end
+        local arg_value = vim.treesitter.get_node_text(arg, 0)
+        argument_values[#argument_values + 1] = arg_value
+    end
+    return argument_values
+end
+
+---@param str string
+local function contains_equal_outside_of_parentheses(str)
+    for i = 1, #str do
+        local char = str:sub(i, i)
+        if char == "=" then
+            return true
+        elseif char == "(" then
+            return false
+        end
+    end
+    return false
+end
+
+--- Returns a table of arguments using their keyword version.
+---@param argument_values table<number, string>
+---@param function_info table<number, string>
+---@return table<number, string>
+local function get_args(argument_values, function_info)
+    -- NOTE: in python you can't have non-keyword arguments after keyword arguments
+    -- Therefore, we can just append the rest of the arguments as they are as soon
+    -- as we encounter a keyword argument.
+
+    local args = {}
+
+    for i = 1, #argument_values do
+        local arg_name = function_info[i]
+        local arg_value = argument_values[i]
+
+        if contains_equal_outside_of_parentheses(arg_value) then
+            -- This is a keyword argument, we can just append the rest of the arguments
+            break
+        else
+            args[#args + 1] = arg_name .. "=" .. arg_value
+        end
+    end
+
+    for i = #args + 1, #argument_values do
+        local arg_value = argument_values[i]
+        args[#args + 1] = arg_value
+    end
+
+    return args
+end
+
+
+_G.expand_keywords = function(mode)
+    local debug = false
+    if not lsp_supports_signature_help(debug) then
+        return
+    end
+
+    local argument_nodes = match_argument_nodes(mode)
+
+    -- local argument_nodes
+    -- vim.schedule(function()
+    --     argument_nodes = match_argument_nodes()
+    -- end)
+    -- vim.defer_fn(function()
+    --     print(argument_nodes)
+    -- end, 0)
+
+    for i = #argument_nodes, 1, -1 do
+        --- arguments_node: TSNode
+        local arguments_node = argument_nodes[i]
+        local function_info = get_function_info(arguments_node)
+        local argument_values = get_argument_values(arguments_node)
+        local args = get_args(argument_values, function_info)
+        -- print(vim.inspect(argument_values))
+        -- print(vim.inspect(args))
+        local repl = "(" .. table.concat(args, ", ") .. ")"
+        local row_start, col_start, row_end, col_end = arguments_node:range()
+
+        -- print(repl)
+        -- local start = arguments_node:start()
+        -- local end_ = arguments_node:end_()
+        -- print('start ' .. start .. ', end ' .. end_)
+
+        vim.api.nvim_buf_set_text(
+            0,
+            row_start,
+            col_start,
+            row_end,
+            col_end,
+            { repl }
+        )
+    end
+end
+
+
+vim.api.nvim_set_keymap(
+    'n',
+    '<leader>mf',
+    ':lua expand_keywords("n")<CR>',
+    { noremap = true, silent = true }
+)
+vim.api.nvim_set_keymap(
+    'v',
+    '<leader>mf',
+    ':lua expand_keywords("v")<CR>',
+    { noremap = true, silent = true }
+)
+
+-- NOTE: Ideas for argument expansion
+-- Automatically add default kwargs into the call (verbose)
+-- Reorder kwargs into the same order as the function definition
+-- Make sure it works in relevant languages
+-- Manage python sentinel?
+-- Un-expansion (remove the function argument)
+-- Deal with newlines
+
+
+-- NOTE: Ideas!
+-- 1. keymap that will find the declared variables on a line, then create a print statement
+-- or logging statement for them.
+-- 2. Line drag feature (moving lines up or down)
+-- 3. When triggering completion within a function call (especially argument values), we should favor literals & variables ?
+-- 4. oil-like buffer that switches automatically on main windows?
