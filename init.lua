@@ -304,6 +304,8 @@ local function find_first_node_of_type_bfs(node, target_type)
 end
 
 
+---@param mode string
+---@return table<integer, TSNode>
 local function match_argument_nodes(mode)
     local parser = parsers.get_parser()
     local tree = parser:parse()[1]
@@ -490,12 +492,20 @@ _G.expand_keywords = function(mode)
     -- end, 0)
 
     for i = #argument_nodes, 1, -1 do
+        --- arguments_node: TSNode
         local arguments_node = argument_nodes[i]
         local function_info = get_function_info(arguments_node)
         local argument_values = get_argument_values(arguments_node)
         local args = get_args(argument_values, function_info)
+        -- print(vim.inspect(argument_values))
+        -- print(vim.inspect(args))
         local repl = "(" .. table.concat(args, ", ") .. ")"
         local row_start, col_start, row_end, col_end = arguments_node:range()
+
+        -- print(repl)
+        -- local start = arguments_node:start()
+        -- local end_ = arguments_node:end_()
+        -- print('start ' .. start .. ', end ' .. end_)
 
         vim.api.nvim_buf_set_text(
             0,
@@ -528,9 +538,12 @@ vim.api.nvim_set_keymap(
 -- Make sure it works in relevant languages
 -- Manage python sentinel?
 -- Un-expansion (remove the function argument)
+-- Deal with newlines
 
 
 -- NOTE: Ideas!
 -- 1. keymap that will find the declared variables on a line, then create a print statement
 -- or logging statement for them.
 -- 2. Line drag feature (moving lines up or down)
+-- 3. When triggering completion within a function call (especially argument values), we should favor literals & variables ?
+-- 4. oil-like buffer that switches automatically on main windows?
