@@ -8,6 +8,13 @@ vim.g.loaded_netrwPlugin = 1
 -- optionally enable 24-bit colour
 vim.opt.termguicolors = true
 
+-- Indent blank line and other such plugins will set conceal levels,
+-- which in turn hide the `` type content.
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "help",
+    command = "setlocal conceallevel=0"
+})
+
 -- setup with some options
 require("nvim-tree").setup({
     sort = {
@@ -534,6 +541,7 @@ vim.api.nvim_set_keymap(
 
 -- NOTE: Ideas for argument expansion
 -- Automatically add default kwargs into the call (verbose)
+-- Sentinels and *args type arguments don't work.
 -- Reorder kwargs into the same order as the function definition
 -- Make sure it works in relevant languages
 -- Manage python sentinel?
@@ -547,3 +555,8 @@ vim.api.nvim_set_keymap(
 -- 2. Line drag feature (moving lines up or down)
 -- 3. When triggering completion within a function call (especially argument values), we should favor literals & variables ?
 -- 4. oil-like buffer that switches automatically on main windows?
+
+vim.api.nvim_set_keymap("v", "<leader>cp", '"*y', { noremap = true, silent = true })
+
+
+vim.api.nvim_set_keymap("n", "<leader>db", "<CR>breakpoint()<ESC>", { noremap = true, silent = true })
