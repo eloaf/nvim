@@ -24,3 +24,8 @@ https://www.youtube.com/shorts/Ofxlqz88pPA
 Amazing, you can you use the quickfix list to apply multiple commands at specific locations
 
 TODO replace copilot chat with https://github.com/CopilotC-Nvim/CopilotChat.nvim
+
+
+TODO:
+- Auto-copilot prompt to generate google style docstring
+- command to format docstring text into max_lines

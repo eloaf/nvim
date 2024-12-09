@@ -273,6 +273,8 @@ local QueryStrings = {
 
 local parsers = require('nvim-treesitter.parsers')
 
+---Returns the treesitter query for the current language.
+---@return vim.treesitter.Query
 local function get_query()
     local ts = vim.treesitter
     local parser = parsers.get_parser()
@@ -438,6 +440,7 @@ local function get_argument_values(arguments_node)
 end
 
 ---@param str string
+---@return boolean
 local function contains_equal_outside_of_parentheses(str)
     for i = 1, #str do
         local char = str:sub(i, i)
@@ -558,5 +561,4 @@ vim.api.nvim_set_keymap(
 
 vim.api.nvim_set_keymap("v", "<leader>cp", '"*y', { noremap = true, silent = true })
 
-
-vim.api.nvim_set_keymap("n", "<leader>db", "<CR>breakpoint()<ESC>", { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap("n", "<leader>db", "<CR>breakpoint()<ESC>", { noremap = true, silent = true })
