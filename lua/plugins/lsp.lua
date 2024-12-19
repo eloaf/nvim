@@ -20,7 +20,7 @@ return {
         config = function()
             local lsp_zero = require('lsp-zero')
 
-            lsp_zero.on_attach(function(client, bufnr)
+            lsp_zero.on_attach(function(_, bufnr)
                 -- see :help lsp-zero-keybindings
                 -- to learn the available actions
                 lsp_zero.default_keymaps({ buffer = bufnr })
@@ -53,8 +53,32 @@ return {
             -- TODO: Other LSPs? Yaml? Json?
             local capabilities = require('cmp_nvim_lsp').default_capabilities()
             lspconfig['pyright'].setup({
-                capabilities = capabilities
+                capabilities = capabilities,
+                settings = {
+                    pyright = {
+                        -- Using Ruff's import organizer
+                        disableOrganizeImports = true,
+                    },
+                },
             })
+
+            lspconfig.ruff.setup({
+                init_options = {
+                    settings = {
+                        -- Any extra CLI arguments for `ruff` go here.
+                        args = {},
+                    }
+                },
+                -- on_attach = function(client)
+                --     print(type(client))
+                --     if client.name == 'ruff_lsp' then
+                --         -- Disable hover in favor of Pyright
+                --         client.server_capabilities.hoverProvider = false
+                --         client.server_capabilities.signatureHelpProvider = false
+                --     end
+                -- end
+            })
+
             -- configure for rust (clippy)
             -- lspconfig['rust_analyzer'].setup({
             --     capabilities = capabilities,
@@ -66,6 +90,7 @@ return {
             --         }
             --     }
             -- })
+
             -- example to setup lua_ls and enable call snippets
             lspconfig.lua_ls.setup({
                 settings = {

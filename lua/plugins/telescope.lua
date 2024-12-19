@@ -61,12 +61,17 @@ return {
 
         -- You dont need to set any of these options. These are the default ones. Only
         -- the loading is important
+        -- require("telescope.mappings")
         telescope.setup {
             defaults = {
+                -- See telescope.mappings
                 mappings = {
                     -- https://www.reddit.com/r/neovim/comments/pzxw8h/telescope_quit_on_first_single_esc/
                     i = {
                         ["<esc>"] = actions.close,
+                        -- ["<C-i>"] = require('telescope.actions').send_selected_to_loclist,
+                        -- ["<C-q>"] = actions.send_to_loclist + actions.open_qflist,
+                        ["<C-i>"] = actions.send_to_loclist + actions.open_loclist
                     },
                 },
             },
@@ -106,10 +111,9 @@ return {
         -- Vim pickers
         vim.keymap.set("n", "<leader>fb", ":Telescope buffers<CR>")
         vim.keymap.set("n", "<leader>fo", ":Telescope oldfiles<CR>")
-        -- vim.keymap.set("n", "<leader>fc", ":Telescope commands<CR>")
-        vim.keymap.set("n", "<leader>fc", ":Telescope current_buffer_fuzzy_find<CR>")
-        -- vim.keymap.set("n", "<leader>fc", ":Telescope command_history<CR>")
-
+        vim.keymap.set("n", "<leader>fu", ":Telescope current_buffer_fuzzy_find<CR>")
+        vim.keymap.set("n", "<leader>fc", ":Telescope command_history<CR>")
+        vim.keymap.set("n", "<leader>fw", ":Telescope lsp_dynamic_workspace_symbols<CR>")
         vim.keymap.set("n", "<leader>fh", ":Telescope help_tags<CR>")
         vim.keymap.set("n", "<leader>fk", ":Telescope keymaps<CR>")
 

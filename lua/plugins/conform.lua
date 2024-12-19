@@ -6,20 +6,15 @@ return {
         conform.setup({
             formatters_by_ft = {
                 lua = { "stylua" },
-                -- Conform will run multiple formatters sequentially
-                -- python = { "black", "isort" },
-                python = { "ruff_format" },
-                -- Use a sub-list to run only the first available formatter
-                -- javascript = { { "prettierd", "prettier" } },
+                python = { "ruff_format", "ruff_organize_imports" },
                 yaml = { "yamlfmt" },
-                -- https://github.com/koalaman/shellcheck
                 sh = { "shellcheck" },
             },
         })
         conform.setup({
             format_on_save = {
                 -- These options will be passed to conform.format()
-                timeout_ms = 5000,
+                timeout_ms = 1000,
                 lsp_fallback = true,
             },
         })

@@ -21,7 +21,7 @@ require("nvim-tree").setup({
         sorter = "case_sensitive",
     },
     view = {
-        width = 40,
+        width = 50,
     },
     renderer = {
         group_empty = true,
@@ -400,28 +400,29 @@ local function get_function_info(arguments_node)
     return arguments
 end
 
----Checks if the current LSP client supports signature help
+--- Returns the LSP client if it supports signature help, otherwise returns nil.
 ---@param debug boolean: Whether to print debug information
----@return boolean
+---@return vim.lsp.Client?
 local function lsp_supports_signature_help(debug)
     -- Ensure the LSP client is attached
     local clients = vim.lsp.get_clients()
-    if next(clients) == nil then
+
+    local clients_with_signature_help = {}
+    for _, client in ipairs(clients) do
+        if client.server_capabilities.signatureHelpProvider then
+            clients_with_signature_help[#clients_with_signature_help + 1] = client
+        end
+    end
+
+    print("Clients", #clients, "Clients with signatureHelp", #clients_with_signature_help)
+
+    if #clients_with_signature_help == 0 then
         maybe_print("No LSP client attached", debug)
-        return false
-    end
-    maybe_print("LSP client attached", debug)
-
-    -- Check if the client supports signatureHelp
-    local client = clients[1]
-    if not client.server_capabilities.signatureHelpProvider then
-        maybe_print("LSP server does not support signatureHelp", debug)
-        return false
-    else
-        maybe_print("LSP server supports signatureHelp", debug)
+        return nil
     end
 
-    return true
+    maybe_print("LSP server supports signatureHelp", debug)
+    return clients_with_signature_help[1]
 end
 
 --- @param arguments_node TSNode
@@ -486,8 +487,11 @@ end
 
 
 _G.expand_keywords = function(mode)
-    local debug = false
-    if not lsp_supports_signature_help(debug) then
+    local debug = true
+
+    local client = lsp_supports_signature_help(debug)
+
+    if client == nil then
         return
     end
 
@@ -507,8 +511,9 @@ _G.expand_keywords = function(mode)
         local function_info = get_function_info(arguments_node)
         local argument_values = get_argument_values(arguments_node)
         local args = get_args(argument_values, function_info)
-        -- print(vim.inspect(argument_values))
-        -- print(vim.inspect(args))
+        print(vim.inspect(function_info))
+        print(vim.inspect(argument_values))
+        print(vim.inspect(args))
         local repl = "(" .. table.concat(args, ", ") .. ")"
         local row_start, col_start, row_end, col_end = arguments_node:range()
 
@@ -542,6 +547,128 @@ vim.api.nvim_set_keymap(
     { noremap = true, silent = true }
 )
 
+
+
+-- _G.browse_symbols = function()
+--     -- require("telescope.builtin").lsp_workspace_symbols()
+--     local telescope = require("telescope")
+-- end
+
+-- Use the Python LSP to retrieve potential imports
+-- local function get_imports()
+--     -- This is a placeholder. Replace with LSP requests or static tools like `pylance` or `jedi`.
+--     return {
+--         "os",
+--         "sys",
+--         "math",
+--         "numpy as np",
+--         "pandas as pd",
+--         "from collections import defaultdict",
+--     }
+-- end
+-- function _G.insert_import()
+--     local imports = get_imports()
+--     require('telescope.pickers').new({}, {
+--         prompt_title = "Select Import",
+--         finder = require('telescope.finders').new_table {
+--             results = imports,
+--             entry_maker = function(entry)
+--                 return {
+--                     value = entry,
+--                     display = entry,
+--                     ordinal = entry
+--                 }
+--             end,
+--         },
+--         sorter = require('telescope.config').values.generic_sorter({}),
+--         attach_mappings = function(_, map)
+--             map('i', '<CR>', function(prompt_bufnr)
+--                 local selection = require('telescope.actions.state').get_selected_entry()
+--                 require('telescope.actions').close(prompt_bufnr)
+--                 -- Insert the import at the top of the file
+--                 local import_statement = selection.value
+--                 vim.api.nvim_buf_set_lines(0, 0, 0, false, { import_statement })
+--             end)
+--             return true
+--         end,
+--     }):find()
+-- end
+
+local M = {}
+
+-- Function to fetch workspace symbols
+local function fetch_workspace_symbols(query, callback)
+    local params = { query = query or "" }
+
+    -- local result = vim.lsp.buf_request_sync(0, "textDocument/signatureHelp", params, 10000)
+    -- vim.lsp.buf_request(0, "workspace/symbol", params, function(err, result, ctx, _)
+    -- vim.lsp.buf_request(0, "workspace/symbol", params, function(err, result, ctx, _)
+    --     if err then
+    --         vim.notify("LSP Error: " .. err.message, vim.log.levels.ERROR)
+    --         return
+    --     end
+    --     callback(result or {})
+    -- end)
+    local result = vim.lsp.buf_request_sync(0, "workspace/symbol", params, 5000)
+    print(vim.inspect(result))
+end
+
+-- Create a Telescope picker to display the symbols
+function _G.show_importable_symbols()
+    fetch_workspace_symbols("", function(symbols)
+        -- Format the symbols for Telescope
+        local entries = {}
+        for _, symbol in ipairs(symbols) do
+            table.insert(entries, {
+                display = string.format("%s [%s]", symbol.name, symbol.kind),
+                ordinal = symbol.name,
+                value = symbol,
+            })
+        end
+
+        -- print(vim.inspect(entries))
+        print("Symbols found: " .. #entries)
+
+        -- Show the results in Telescope
+        require("telescope.pickers").new({}, {
+            prompt_title = "Workspace Symbols",
+            finder = require("telescope.finders").new_table {
+                results = entries,
+                entry_maker = function(entry)
+                    return {
+                        value = entry.value,
+                        display = entry.display,
+                        ordinal = entry.ordinal,
+                    }
+                end,
+            },
+            sorter = require("telescope.config").values.generic_sorter({}),
+            attach_mappings = function(_, map)
+                map("i", "<CR>", function(prompt_bufnr)
+                    local selection = require("telescope.actions.state").get_selected_entry()
+                    require("telescope.actions").close(prompt_bufnr)
+
+                    -- Insert the selected symbol as an import at the top of the file
+                    local import_name = selection.value.name
+                    vim.api.nvim_buf_set_lines(0, 0, 0, false, { "import " .. import_name })
+                end)
+                return true
+            end,
+        }):find()
+    end)
+end
+
+vim.api.nvim_set_keymap(
+    'n',
+    '<leader>i',
+    -- ':lua browse_symbols()<CR>',
+    -- ":Telescope lsp_workspace_symbols<CR>",
+    -- ":lua insert_import()<CR>",
+    ":lua show_importable_symbols()<CR>",
+    { noremap = true, silent = true }
+)
+
+
 -- NOTE: Ideas for argument expansion
 -- Automatically add default kwargs into the call (verbose)
 -- Sentinels and *args type arguments don't work.
@@ -562,3 +689,35 @@ vim.api.nvim_set_keymap(
 vim.api.nvim_set_keymap("v", "<leader>cp", '"*y', { noremap = true, silent = true })
 
 -- vim.api.nvim_set_keymap("n", "<leader>db", "<CR>breakpoint()<ESC>", { noremap = true, silent = true })
+
+function set_visual_line_selection(start_line, end_line)
+    -- Save the current cursor position
+    local current_pos = vim.api.nvim_win_get_cursor(0)
+
+    -- Move to the start line and enter visual line mode
+    vim.api.nvim_win_set_cursor(0, { start_line, 0 })
+    vim.cmd('normal! V')
+
+    -- Move to the end line
+    vim.api.nvim_win_set_cursor(0, { end_line, 0 })
+
+    -- Restore the original cursor position
+    vim.api.nvim_win_set_cursor(0, current_pos)
+end
+
+-- Move selection while keeping the cursor in the same position
+vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { silent = true })
+vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { silent = true })
+
+-- function to return the current filename
+function _G.get_current_filename()
+    return vim.fn.expand("%:t")
+end
+
+-- function copy to the current filename to the * register
+function _G.copy_current_filename()
+    local filename = get_current_filename()
+    vim.fn.setreg("*", filename)
+end
+
+vim.api.nvim_set_keymap("n", "<leader>cf", ":lua copy_current_filename()<CR>", { noremap = true, silent = true })

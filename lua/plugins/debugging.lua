@@ -67,5 +67,38 @@ return {
 
         -- If using the above, then `/path/to/venv/bin/python -m debugpy --version`
         -- must work in the shell
+
+        -- Use telescope to browse files in ./run_configs/
+        -- local telescope = require("telescope")
+        -- vim.api.nvim_set_keymap(
+        --     'n',
+        --     '<leader>rr',
+        --     [[<cmd>lua require('telescope.builtin').find_files({ prompt_title = "Run Scripts", cwd = "./run_scripts" })<CR>]],
+        --     { noremap = true, silent = true }
+        -- )
+
+        local run_script = function(selection)
+            local command = "term " .. selection.cwd .. "/" .. selection.value
+            vim.cmd(command)
+        end
+
+        vim.api.nvim_set_keymap(
+            'n',
+            '<leader>rr',
+            [[<cmd>lua require('telescope.builtin').find_files({
+        prompt_title = "Run Scripts",
+        cwd = "./run_scripts",
+        attach_mappings = function(prompt_bufnr, map)
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                local command = "term " .. selection.cwd .. "/" .. selection.value
+                vim.cmd(command)
+            end)
+            return true
+        end
+    })<CR>]],
+            { noremap = true, silent = true }
+        )
     end
 }
