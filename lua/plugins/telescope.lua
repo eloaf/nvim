@@ -117,6 +117,19 @@ return {
         vim.keymap.set("n", "<leader>fh", ":Telescope help_tags<CR>")
         vim.keymap.set("n", "<leader>fk", ":Telescope keymaps<CR>")
 
+        vim.keymap.set("n", "<leader>fp", function()
+            local data_dir = vim.fn.stdpath("data")
+            if data_dir == nil then
+                error("data_dir is nil")
+            end
+            if type(data_dir) == "table" then
+                data_dir = data_dir[1]
+            end
+            require("telescope.builtin").find_files({
+                cwd = vim.fs.joinpath(data_dir, "lazy")
+            })
+        end)
+
         -- TODO Overriding the gd, gr, etc
         -- builtin.lsp_references	Lists LSP references for word under the cursor
         -- builtin.lsp_incoming_calls	Lists LSP incoming calls for word under the cursor

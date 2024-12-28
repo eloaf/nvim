@@ -12,9 +12,25 @@ return {
         -- ivz.bcg.grezthvpbybef = gehr
 
         -- empty setup using defaults
-        require("nvim-tree").setup()
+        -- require("nvim-tree").setup()
 
         -- https://github.com/nvim-tree/nvim-tree.lua/blob/master/doc/nvim-tree-lua.txt
         vim.keymap.set("n", "<leader>t", ":NvimTreeToggle<CR>", { noremap = true })
+
+        -- setup with some options
+        require("nvim-tree").setup({
+            sort = {
+                sorter = "case_sensitive",
+            },
+            view = {
+                width = 50,
+            },
+            renderer = {
+                group_empty = true,
+            },
+            filters = {
+                dotfiles = true,
+            },
+        })
     end
 }

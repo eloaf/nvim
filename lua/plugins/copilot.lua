@@ -71,11 +71,11 @@ return {
                 require("CopilotChat").setup(
                     {
                         window = {
-                            layout = 'float',
+                            layout = 'vertical',
                             relative = 'cursor',
-                            width = 1,
-                            height = 0.4,
-                            row = 1
+                            width = 0.4,
+                            height = 0.2,
+                            row = 1,
                         }
                     }
                 )
